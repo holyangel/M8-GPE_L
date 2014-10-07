@@ -531,6 +531,7 @@ int __init cpq_auto_hotplug_init(void)
 	cpuquiet_early_suspender.suspend = cpuquiet_early_suspend,
 	cpuquiet_early_suspender.resume = cpuquiet_late_resume,
 	register_power_suspend(&cpuquiet_early_suspender);
+};
 #endif  /* CONFIG_POWERSUSPEND */
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
