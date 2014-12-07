@@ -45,7 +45,7 @@ config CPU_FREQ_STAT_DETAILS
 config QUAD_CORES_SOC_STAT
 	bool "Overall statistic details for quadcore SOCs"
 	depends on CPU_FREQ_STAT
-	default n
+	default y
 	help
 	  This will show overall CPU frequency statistics via sysfs.
 	  If this option is not set, it defaults to dual core stats
@@ -155,6 +155,14 @@ config CPU_FREQ_DEFAULT_GOV_INTELLIDEMAND
 	  Use the CPUFreq governor 'intellidemand' as default. This is
 	  based on Ondemand with browsing detection based on GPU loading
 	  
+
+config CPU_FREQ_DEFAULT_GOV_INTELLIMM
+        bool "intelliminmax"
+        select CPU_FREQ_GOV_INTELLIMM
+        help
+          Use the CPUFreq governor 'intelliminmax' as default. This is
+          governor will use only 3 different frequencies, idle, UI and max
+
 config CPU_FREQ_DEFAULT_GOV_INTERACTIVEX
 	bool "interactiveX"
 	select CPU_FREQ_GOV_INTERACTIVEX
