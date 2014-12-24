@@ -247,8 +247,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -fgcse-las
-HOSTCXXFLAGS = -O2 -fgcse-las
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer -fgcse-las
+HOSTCXXFLAGS = -Ofast -fgcse-las
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -358,12 +358,24 @@ MODFLAGS        = -DMODULE \
                   -mtune=cortex-a15 \
 		  -fgcse-las \
 		  -fpredictive-commoning \
-                  -O2
+                  -Ofast
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
-CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops -fgraphite -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
-AFLAGS_KERNEL	= $(CFLAGS_KERNEL)
+CFLAGS_KERNEL	= -mfpu=neon-vfpv4 \
+                  -mtune=cortex-a15 \
+		  -fgcse-las \
+		  -fpredictive-commoning \
+                  -Ofast \
+		  -fgcse-lm \
+		  -fgcse-sm \
+		  -fsched-spec-load \
+		  -fsingle-precision-constant
+
+ifeq ($(ENABLE_GRAPHITE),true)
+CFLAGS_KERNEL	+= -Ofast -munaligned-access -Wall -Wno-maybe-uninitialized -fgcse-lm -fgcse-sm -fsingle-precision-constant -fforce-addr -fsched-spec-load -mtune=cortex-a15 -mcpu=cortex-a15 -marm -mfpu=neon-vfpv4 -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops -fpredictive-commoning -ffast-math -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block -fomit-frame-pointer -fgcse-las -Wmissing-prototypes -Wstrict-prototypes
+endif
+AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
@@ -380,14 +392,15 @@ CFLAGS_A15 = -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations
 CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
 KERNEL_MODS        = $(CFLAGS_A15) $(CFLAGS_MODULO)
 
-KBUILD_CFLAGS   := -O2 -funswitch-loops \
+KBUILD_CFLAGS   := -Ofast -funswitch-loops \
 		   -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks
 		   -mtune=cortex-a15 -mfpu=neon-vfpv4 \
-
+		   -funsafe-math-optimizations -ftree-vectorize \
+		   -fno-delete-null-pointer-checks
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -580,7 +593,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -O2 -fgraphite
+KBUILD_CFLAGS	+= -Ofast
 ifeq ($(ENABLE_GRAPHITE),true)
 KBUILD_CFLAGS	+= -Ofast -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 endif
