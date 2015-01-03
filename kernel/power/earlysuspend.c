@@ -31,6 +31,10 @@ enum {
 static int debug_mask = DEBUG_USER_STATE;
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
+#ifdef CONFIG_TRIPNDROID_FRAMEWORK
+extern unsigned int tdf_suspend_state;
+#endif
+
 static DEFINE_MUTEX(early_suspend_lock);
 static LIST_HEAD(early_suspend_handlers);
 static void early_suspend(struct work_struct *work);
@@ -104,6 +108,9 @@ static void early_suspend(struct work_struct *work)
 	mutex_unlock(&early_suspend_lock);
 
 	if (debug_mask & DEBUG_SUSPEND)
+#ifdef CONFIG_TRIPNDROID_FRAMEWORK
+		tdf_suspend_state = 1;
+#endif
 		pr_info("early_suspend: sync\n");
 
 	sys_sync();
@@ -144,6 +151,9 @@ static void late_resume(struct work_struct *work)
 		}
 	}
 	if (debug_mask & DEBUG_SUSPEND)
+#ifdef CONFIG_TRIPNDROID_FRAMEWORK
+		tdf_suspend_state = 0;
+#endif
 		pr_info("late_resume: done\n");
 abort:
 	mutex_unlock(&early_suspend_lock);
