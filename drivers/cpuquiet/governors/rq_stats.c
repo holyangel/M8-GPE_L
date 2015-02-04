@@ -26,6 +26,13 @@
 extern unsigned int cpq_max_cpus(void);
 extern unsigned int cpq_min_cpus(void);
 extern bool cpq_is_suspended(void);
+// from cpuquiet_driver.c
+extern unsigned int best_core_to_turn_up (void);
+//from core.c
+extern unsigned long avg_cpu_nr_running(unsigned int cpu);
+
+// from sysfs.c
+extern unsigned int gov_enabled;
 
 typedef enum {
 	DISABLED,
@@ -73,7 +80,7 @@ static unsigned int get_lightest_loaded_cpu_n(void)
 	int i;
 
 	for_each_online_cpu(i) {
-		unsigned int nr_runnables = get_avg_nr_running(i);
+		unsigned int nr_runnables = avg_cpu_nr_running(i);
 
 		if (i > 0 && min_avg_runnables > nr_runnables) {
 			cpu = i;
@@ -166,7 +173,7 @@ static bool __rq_stats_work_func(void)
 		sample = true;
 		break;
 	case UP:
-		cpu = cpumask_next_zero(0, cpu_online_mask);
+		cpu = best_core_to_turn_up ();
 		up = true;
 		sample = true;
 		break;
@@ -192,6 +199,9 @@ static bool __rq_stats_work_func(void)
 static void rq_stats_work_func(struct work_struct *work)
 {
 	bool sample = false;
+
+	if (!gov_enabled)
+		return;
 
 	mutex_lock(&rq_stats_work_lock);
 
@@ -407,6 +417,9 @@ static void rq_stats_device_free(void)
 
 static void load_stats_touch_event(void)
 {
+	if (!gov_enabled)
+		return;
+
 	if (!cpq_is_suspended() && input_boost_enabled && !input_boost_running){
 		if (input_boost_task_alive)
 			wake_up_process(input_boost_task);
@@ -488,3 +501,4 @@ static void __exit exit_rq_stats(void)
 MODULE_LICENSE("GPL");
 module_init(init_rq_stats);
 module_exit(exit_rq_stats);
+

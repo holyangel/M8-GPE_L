@@ -28,6 +28,14 @@
 // from cpuquiet.c
 extern unsigned int cpq_max_cpus(void);
 extern unsigned int cpq_min_cpus(void);
+// from cpuquiet_driver.c
+extern unsigned int best_core_to_turn_up (void);
+//from core.c
+extern unsigned long avg_nr_running(void);
+extern unsigned long avg_cpu_nr_running(unsigned int cpu);
+
+// from sysfs.c
+extern unsigned int gov_enabled;
 
 typedef enum {
 	DISABLED,
@@ -93,7 +101,7 @@ static unsigned int get_lightest_loaded_cpu_n(void)
 	int i;
 
 	for_each_online_cpu(i) {
-		unsigned int nr_runnables = get_avg_nr_running(i);
+		unsigned int nr_runnables = avg_cpu_nr_running(i);
 
 		if (i > 0 && min_avg_runnables > nr_runnables) {
 			cpu = i;
@@ -110,6 +118,9 @@ static void runnables_work_func(struct work_struct *work)
 	bool sample = false;
 	unsigned int cpu = nr_cpu_ids;
 
+	if (!gov_enabled)
+		return;
+
 	mutex_lock(&runnables_work_lock);
 
 	update_runnables_state();
@@ -121,7 +132,7 @@ static void runnables_work_func(struct work_struct *work)
 		sample = true;
 		break;
 	case UP:
-		cpu = cpumask_next_zero(0, cpu_online_mask);
+		cpu = best_core_to_turn_up ();
 		up = true;
 		sample = true;
 		break;
@@ -283,3 +294,4 @@ static void __exit exit_runnables(void)
 MODULE_LICENSE("GPL");
 module_init(init_runnables);
 module_exit(exit_runnables);
+
