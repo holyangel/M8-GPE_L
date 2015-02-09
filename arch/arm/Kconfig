@@ -2393,7 +2393,7 @@ source "drivers/cpuidle/Kconfig"
 
 source "drivers/cpuquiet/Kconfig"
 
-source "drivers/cpuintelli/Kconfig"
+source "arch/arm/hotplug/Kconfig"
 
 source "drivers/cpumako/Kconfig"
 
