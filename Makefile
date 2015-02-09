@@ -359,7 +359,7 @@ MODFLAGS        = -DMODULE \
                   -mtune=cortex-a15 \
 		  -fgcse-las \
 		  -fpredictive-commoning \
-                  -Ofast
+                  -O3 -floop-nest-optimize -fgcse-lm -fgcse-sm -fivopts
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
@@ -367,12 +367,14 @@ CFLAGS_KERNEL	= -mfpu=neon-vfpv4 \
                   -mtune=cortex-a15 \
 		  -fgcse-las \
 		  -fpredictive-commoning \
-                  -Ofast \
+                  -O3 -fvariable-expansion-in-unroller \
 		  -fgcse-lm \
 		  -fgcse-sm \
-		  -fsched-spec-load \
-		  -DNDEBUG -pipe -mcpu=cortex-a15 -marm -ftree-vectorize -mvectorize-with-neon-quad -floop-nest-optimize \
-		  -Wno-maybe-uninitialized -fsingle-precision-constant -fforce-addr -funroll-loops -floop-interchange -floop-strip-mine -floop-block -fgcse-las
+		  -fsched-spec-load -fivopts \
+		  -DNDEBUG -pipe -mcpu=cortex-a15 -marm -ftree-vectorize -mvectorize-with-neon-quad \
+		  -floop-nest-optimize -Wno-maybe-uninitialized -fsingle-precision-constant \
+		  -fforce-addr -funroll-loops -floop-interchange -floop-strip-mine \
+		  -floop-block -fgcse-las
 
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
@@ -387,11 +389,11 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-CFLAGS_A15 = -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations
-CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
+CFLAGS_A15 = -mtune=cortex-a15 -mfpu=neon -O3 -floop-nest-optimize
+CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves -floop-nest-optimize
 KERNEL_MODS        = $(CFLAGS_A15) $(CFLAGS_MODULO)
 
-KBUILD_CFLAGS := -Ofast \
+KBUILD_CFLAGS := -O3 \
 		-Wundef -Wstrict-prototypes -Wno-trigraphs \
 		-fno-strict-aliasing -fno-common \
 		-Werror-implicit-function-declaration \
@@ -402,8 +404,9 @@ KBUILD_CFLAGS := -Ofast \
 		-pipe -DNDEBUG -mcpu=cortex-a15 -marm \
 		-ftree-vectorize -mvectorize-with-neon-quad \
 		-fgcse-lm -fgcse-sm -fsingle-precision-constant \
-		-fforce-addr -fsched-spec-load -funroll-loops \
-		-floop-nest-optimize \
+		-fforce-addr -fsched-spec-load \
+		-floop-nest-optimize -fivopts\
+		-fgcse-lm -fgcse-sm -fvariable-expansion-in-unroller \
 		-floop-strip-mine -floop-block -floop-flatten
 KBUILD_AFLAGS_KERNEL := $(CFLAGS_KERNEL)
 KBUILD_CFLAGS_KERNEL := $(CFLAGS_KERNEL)
@@ -597,7 +600,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -Ofast $(call cc-disable-warning,maybe-uninitialized,) -floop-nest-optimize -ftree-loop-linear -floop-strip-mine -floop-block
+KBUILD_CFLAGS	+= -O3 $(call cc-disable-warning,maybe-uninitialized,) -floop-nest-optimize -floop-strip-mine -floop-block
 endif 
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
