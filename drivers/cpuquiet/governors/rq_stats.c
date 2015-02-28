@@ -501,3 +501,4 @@ static void __exit exit_rq_stats(void)
 MODULE_LICENSE("GPL");
 module_init(init_rq_stats);
 module_exit(exit_rq_stats);
+

@@ -35,3 +35,4 @@ int cpuquiet_cpu_kobject_init(struct kobject *kobj, struct kobj_type *type,
 				char *name, int cpu);
 
 #endif
+
