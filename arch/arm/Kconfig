@@ -2391,8 +2391,6 @@ endif
 
 source "drivers/cpuidle/Kconfig"
 
-source "drivers/cpuquiet/Kconfig"
-
 source "arch/arm/hotplug/Kconfig"
 
 endmenu
