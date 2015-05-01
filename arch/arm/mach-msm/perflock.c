@@ -19,7 +19,7 @@
 #include <linux/device.h>
 #include <linux/clk.h>
 #include <linux/debugfs.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/cpufreq.h>
 #include <linux/timer.h>
 #include <linux/slab.h>

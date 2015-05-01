@@ -41,8 +41,8 @@
 #if defined(CONFIG_FB)
 #include <linux/notifier.h>
 #include <linux/fb.h>
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-#include <linux/earlysuspend.h>
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+#include <linux/powersuspend.h>
 #endif
 
 #if defined(CONFIG_SYNC_TOUCH_STATUS)
@@ -145,8 +145,8 @@ struct synaptics_ts_data {
 	int (*power)(int on);
 #if defined(CONFIG_FB)
 	struct notifier_block fb_notif;
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-	struct early_suspend early_suspend;
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+	struct power_suspend power_suspend;
 #endif
 	int pre_finger_data[11][4];
 	uint32_t debug_log_level;
@@ -247,9 +247,9 @@ struct synaptics_ts_data {
 #if defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self,
 				 unsigned long event, void *data);
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-static void synaptics_ts_early_suspend(struct early_suspend *h);
-static void synaptics_ts_late_resume(struct early_suspend *h);
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+static void synaptics_ts_power_suspend(struct power_suspend *h);
+static void synaptics_ts_late_resume(struct power_suspend *h);
 #endif
 #if defined(CONFIG_SYNC_TOUCH_STATUS)
 static void switch_sensor_hub(struct synaptics_ts_data* ts, int mode);
@@ -4914,11 +4914,11 @@ static int __devinit synaptics_ts_probe(
 	INIT_DELAYED_WORK(&ts->work_att, syn_fb_register);
 	queue_delayed_work(ts->syn_att_wq, &ts->work_att, msecs_to_jiffies(15000));
 
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-	ts->early_suspend.level = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 1;
-	ts->early_suspend.suspend = synaptics_ts_early_suspend;
-	ts->early_suspend.resume = synaptics_ts_late_resume;
-	register_early_suspend(&ts->early_suspend);
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+	ts->power_suspend.level = POWER_SUSPEND_LEVEL_STOP_DRAWING - 1;
+	ts->power_suspend.suspend = synaptics_ts_power_suspend;
+	ts->power_suspend.resume = synaptics_ts_late_resume;
+	register_power_suspend(&ts->power_suspend);
 #endif
 
 #ifdef SYN_CABLE_CONTROL
@@ -5025,8 +5025,8 @@ static int __devexit synaptics_ts_remove(struct i2c_client *client)
 #ifdef CONFIG_FB
 	if (fb_unregister_client(&ts->fb_notif))
 		dev_err(&client->dev, "Error occurred while unregistering fb_notifier.\n");
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-	unregister_early_suspend(&ts->early_suspend);
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+	unregister_power_suspend(&ts->power_suspend);
 #endif
 	if (ts->use_irq)
 		free_irq(client->irq, ts);
@@ -5454,24 +5454,24 @@ static int fb_notifier_callback(struct notifier_block *self,
 
 	return 0;
 }
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-static void synaptics_ts_early_suspend(struct early_suspend *h)
+#elif defined(CONFIG_HAS_POWERSUSPEND)
+static void synaptics_ts_power_suspend(struct power_suspend *h)
 {
 	struct synaptics_ts_data *ts;
-	ts = container_of(h, struct synaptics_ts_data, early_suspend);
+	ts = container_of(h, struct synaptics_ts_data, power_suspend);
 	synaptics_ts_suspend(ts->client->dev);
 }
 
-static void synaptics_ts_late_resume(struct early_suspend *h)
+static void synaptics_ts_late_resume(struct power_suspend *h)
 {
 	struct synaptics_ts_data *ts;
-	ts = container_of(h, struct synaptics_ts_data, early_suspend);
+	ts = container_of(h, struct synaptics_ts_data, power_suspend);
 	synaptics_ts_resume(ts->client->dev);
 }
 #endif
 
 static const struct dev_pm_ops synaptics_pm_ops = {
-#if (!defined(CONFIG_FB) && !defined(CONFIG_HAS_EARLYSUSPEND))
+#if (!defined(CONFIG_FB) && !defined(CONFIG_HAS_POWERSUSPEND))
 	.suspend = synaptics_ts_suspend,
 	.resume  = synaptics_ts_resume,
 #else

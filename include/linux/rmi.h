@@ -30,8 +30,8 @@
 #include <linux/list.h>
 #include <linux/interrupt.h>
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_HAS_POWERSUSPEND
+#include <linux/powersuspend.h>
 #endif
 
 
@@ -465,7 +465,7 @@ struct rmi_phys_device {
  * @dev: The device created for the RMI bus
  * @driver: Pointer to associated driver
  * @phys: Pointer to the physical interface
- * @early_suspend_handler: Pointers to early_suspend and late_resume, if
+ * @power_suspend_handler: Pointers to power_suspend and late_resume, if
  * configured.
  *
  * This structs represent an RMI device.
@@ -477,8 +477,8 @@ struct rmi_device {
 	struct rmi_driver *driver;
 	struct rmi_phys_device *phys;
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	struct early_suspend early_suspend_handler;
+#ifdef CONFIG_HAS_POWERSUSPEND
+	struct power_suspend power_suspend_handler;
 #endif
 };
 #define to_rmi_device(d) container_of(d, struct rmi_device, dev);
