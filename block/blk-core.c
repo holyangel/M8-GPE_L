@@ -1175,7 +1175,7 @@ generic_make_request_checks(struct bio *bio)
 	might_sleep();
 
 #ifdef CONFIG_MMC_MUST_PREVENT_WP_VIOLATION
-	sprintf(wp_ptn, "mmcblk0p%d", get_partition_num_by_name("xxxxxx"));
+	sprintf(wp_ptn, "mmcblk0p%d", get_partition_num_by_name("system"));
 	if (!strcmp(bdevname(bio->bi_bdev, b), wp_ptn) && !board_mfg_mode() &&
 			(get_tamper_sf() == 1) && (get_atsdebug() != 1) && (bio->bi_rw & WRITE)) {
 		pr_info("blk-core: Attempt to write protected partition %s block %Lu \n",
@@ -1305,6 +1305,7 @@ void submit_bio(int rw, struct bio *bio)
 			count_vm_events(PGPGOUT, count);
 		} else {
 			task_io_account_read(bio->bi_size);
+			collect_io_stats(bio->bi_size, READ);
 			count_vm_events(PGPGIN, count);
 		}
 
@@ -2143,8 +2144,7 @@ int __init blk_dev_init(void)
 
 	
 	kblockd_workqueue = alloc_workqueue("kblockd",
-					    WQ_MEM_RECLAIM | WQ_HIGHPRI |
-					    WQ_POWER_EFFICIENT, 0);
+					    WQ_MEM_RECLAIM | WQ_HIGHPRI, 0);
 	if (!kblockd_workqueue)
 		panic("Failed to create kblockd\n");
 
