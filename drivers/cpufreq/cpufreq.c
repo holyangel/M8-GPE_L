@@ -643,7 +643,7 @@ static struct attribute *default_attrs[] = {
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
 #ifdef CONFIG_MSM_CPU_VOLTAGE_CONTROL
-	&UV_mV_table.attr,
+cpufreq_freq_attr_rw(UV_mV_table);
 #endif
 	NULL
 };
